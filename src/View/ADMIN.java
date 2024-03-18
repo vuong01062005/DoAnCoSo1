@@ -6,10 +6,7 @@ import java.awt.*;
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import javax.imageio.ImageIO;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
+import java.awt.event.*;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -289,7 +286,7 @@ public class ADMIN extends JFrame {
         lblScCha.setBounds(368, 114, 143, 34);
         panel_lichbay.add(lblScCha);
 
-        textField_lichmachuyenbay = new JTextField();
+        textField_lichmachuyenbay = new JTextField("");
         textField_lichmachuyenbay.setFont(new Font("Tahoma", Font.PLAIN, 20));
         textField_lichmachuyenbay.setBounds(185, 26, 153, 34);
         panel_lichbay.add(textField_lichmachuyenbay);
