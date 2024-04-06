@@ -601,11 +601,11 @@ public class ADMIN extends JFrame {
         jMenu_ThongKe = new JMenu("Thống kê");
         jMenu_ThongKe.setFont(new Font("Tahoma", Font.PLAIN, 18));
 
-        jMenuItem_LoaiGhe = new JMenuItem("Thống kê loại loại ghế được đặt - 2023");
+        jMenuItem_LoaiGhe = new JMenuItem("Thống kê loại loại ghế được đặt qua các năm");
         jMenuItem_LoaiGhe.setFont(new Font("Tahoma", Font.PLAIN, 18));
-        jMenuItem_DoanhThu = new JMenuItem("Thống kê doanh thu - 2023");
+        jMenuItem_DoanhThu = new JMenuItem("Thống kê doanh thu qua các năm");
         jMenuItem_DoanhThu.setFont(new Font("Tahoma", Font.PLAIN, 18));
-        jMenuItem_HangBay = new JMenuItem("Xu hướng đặt vé của khách hàng với hãng bay - 2023");
+        jMenuItem_HangBay = new JMenuItem("Xu hướng đặt vé của khách hàng với hãng bay qua các năm");
         jMenuItem_HangBay.setFont(new Font("Tahoma", Font.PLAIN, 18));
 
         jMenu_ThongKe.add(jMenuItem_DoanhThu);
