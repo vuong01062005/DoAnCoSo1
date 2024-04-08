@@ -11,6 +11,7 @@ import Controller.QLCBController;
 import DAO.KhachHangDAO;
 import DAO.LichBayDAO;
 import DAO.NguoiDungDAO;
+import Mail.Emailto;
 import Model.DSKhachHang;
 import Model.DSLichBay;
 import Model.EditLichBay;
@@ -1136,54 +1137,71 @@ public class NguoiDung extends JFrame {
 	public void thuchienthemkhachhang(KhachHang kh) {
 		if (!this.dsKhachHang.kiemtraCCCD(kh)) {
 			if (!this.dsKhachHang.kiemtraSDT(kh)) {
-				String xacthuc = JOptionPane.showInputDialog(this,
-						"Nhập Mã OTP qua số điện thoại: " + kh.getSoDienThoai(), "Messenger",
-						JOptionPane.OK_CANCEL_OPTION);
-				if (xacthuc != null) {
-					if (new String(xacthuc).equals("123")) {
-						this.dsKhachHang.insert(kh);
-						this.themkhachhangvaobangkhachhang(kh);
-						this.khachHangDAO.insert(kh);
-						EditLichBay lb = new EditLichBay(comboBox_datvemachuyenbay.getSelectedItem() + "", null, null,
-								null, null, null, 0);
-						if (comboBox_EconomyClass.getSelectedItem().equals(kh.getSoGhe() + "")) {
-							this.lichBayDAO.xoaghe(lb, Integer.valueOf(comboBox_EconomyClass.getSelectedItem() + ""),
-									null, null);
-							themtienvaodatabase(comboBox_datvemachuyenbay.getSelectedItem()+"");
-						} else if (comboBox_BusinessClass.getSelectedItem().equals(kh.getSoGhe() + "")) {
-							this.lichBayDAO.xoaghe(lb, null,
-									Integer.valueOf(comboBox_BusinessClass.getSelectedItem() + ""), null);
-							themtienvaodatabase(comboBox_datvemachuyenbay.getSelectedItem()+"");
-						} else if (comboBox_FirstClass.getSelectedItem().equals(kh.getSoGhe())) {
-							this.lichBayDAO.xoaghe(lb, null, null,
-									Integer.valueOf(comboBox_FirstClass.getSelectedItem() + ""));
-							themtienvaodatabase(comboBox_datvemachuyenbay.getSelectedItem()+"");
-						}
+				if (!textField_email.getText().isEmpty()) {
+					if (textField_email.getText().matches("^.+@gmail.com")) {
+						Emailto.sendEmail(textField_email.getText().trim());
+						String randomOTP = Emailto.laymaTeenCode(); // Lấy mã OTP đã gửi từ email
 
-						JOptionPane.showMessageDialog(this, "Thêm Thành Công!");
-						cardLayout.show(jPanel_card, "jPanel_datve");
+						String xacthuc = JOptionPane.showInputDialog(this, "Nhập Mã OTP qua email: " + textField_email.getText(),
+								"Messenger", JOptionPane.OK_CANCEL_OPTION);
+						if (xacthuc != null) {
+
+							if (xacthuc.equals(randomOTP)) {
+
+								this.dsKhachHang.insert(kh);
+								this.themkhachhangvaobangkhachhang(kh);
+								this.khachHangDAO.insert(kh);
+								EditLichBay lb = new EditLichBay(comboBox_datvemachuyenbay.getSelectedItem() + "", null,
+										null, null, null, null, 0);
+								if (comboBox_EconomyClass.getSelectedItem().equals(kh.getSoGhe() + "")) {
+									this.lichBayDAO.xoaghe(lb,
+											Integer.valueOf(comboBox_EconomyClass.getSelectedItem() + ""), null, null);
+									themtienvaodatabase(comboBox_datvemachuyenbay.getSelectedItem() + "");
+								} else if (comboBox_BusinessClass.getSelectedItem().equals(kh.getSoGhe() + "")) {
+									this.lichBayDAO.xoaghe(lb, null,
+											Integer.valueOf(comboBox_BusinessClass.getSelectedItem() + ""), null);
+									themtienvaodatabase(comboBox_datvemachuyenbay.getSelectedItem() + "");
+								} else if (comboBox_FirstClass.getSelectedItem().equals(kh.getSoGhe())) {
+									this.lichBayDAO.xoaghe(lb, null, null,
+											Integer.valueOf(comboBox_FirstClass.getSelectedItem() + ""));
+									themtienvaodatabase(comboBox_datvemachuyenbay.getSelectedItem() + "");
+								}
+
+								JOptionPane.showMessageDialog(this, "Thêm Thành Công!");
+								cardLayout.show(jPanel_card, "jPanel_datve");
+							} else {
+								JOptionPane.showMessageDialog(this, "Mã OTP không đúng", "ERROR",
+										JOptionPane.ERROR_MESSAGE);
+							}
+						}
+						this.textField_dtenkhachhang.setText("Tên Đặt Vé");
+						this.textField_dngaysinh.setText("Ngày Sinh");
+						this.btn_groupDgioitinh.clearSelection();
+						this.textField_dcccd.setText("CCCD");
+						this.comboBox_datvemachuyenbay.setSelectedIndex(0);
+						this.textField_dsdt.setText("Số Điện Thoại");
+						this.comboBox_BusinessClass.setSelectedIndex(0);
+						this.comboBox_EconomyClass.setSelectedIndex(0);
+						this.comboBox_FirstClass.setSelectedIndex(0);
+						this.NewLabel_giave.setText("");
+						layout.show(panel_3, "panel1");
+						this.NewLabel_anhchuyenkhoan.setIcon(null);
 					} else {
-						JOptionPane.showMessageDialog(this, "Mã OTP không đúng", "ERROR", JOptionPane.ERROR_MESSAGE);
+						JOptionPane.showMessageDialog(this, "Email không đúng định dạng! (@gmail.com)", "ERROR",
+								JOptionPane.ERROR_MESSAGE);
 					}
+				} else {
+					JOptionPane.showMessageDialog(this, "Email trống! vui lòng nhập email", "ERROR",
+							JOptionPane.ERROR_MESSAGE);
 				}
-				this.textField_dtenkhachhang.setText("Tên Đặt Vé");
-				this.textField_dngaysinh.setText("Ngày Sinh");
-				this.btn_groupDgioitinh.clearSelection();
-				this.textField_dcccd.setText("CCCD");
-				this.comboBox_datvemachuyenbay.setSelectedIndex(0);
-				this.textField_dsdt.setText("Số Điện Thoại");
-				this.comboBox_BusinessClass.setSelectedIndex(0);
-				this.comboBox_EconomyClass.setSelectedIndex(0);
-				this.comboBox_FirstClass.setSelectedIndex(0);
-				this.NewLabel_giave.setText("");
-				layout.show(panel_3, "panel1");
-				this.NewLabel_anhchuyenkhoan.setIcon(null);
 			} else {
 				JOptionPane.showMessageDialog(this, "Số điện thoại đã tồn tại", "ERROR", JOptionPane.ERROR_MESSAGE);
 			}
-		} else {
+		}
+		else {
 			JOptionPane.showMessageDialog(this, "CCCD/CMND đã tồn tại", "ERROR", JOptionPane.ERROR_MESSAGE);
 		}
+
 	}
 
 	public void themtienvaodatabase(String mcb){
@@ -1203,7 +1221,6 @@ public class NguoiDung extends JFrame {
 			@Override
 			public void itemStateChanged(ItemEvent e) {
 				if (e.getStateChange() == ItemEvent.SELECTED){
-					themtienvaodatabase2(1500000, thang, nam);
 					removeAllItemListeners(comboBox_EconomyClass);
 				}
 			}
@@ -1213,7 +1230,6 @@ public class NguoiDung extends JFrame {
 			@Override
 			public void itemStateChanged(ItemEvent e) {
 				if (e.getStateChange() == ItemEvent.SELECTED){
-					themtienvaodatabase2(800000, thang, nam);
 					removeAllItemListeners(comboBox_BusinessClass);
 				}
 			}
@@ -1223,18 +1239,10 @@ public class NguoiDung extends JFrame {
 			@Override
 			public void itemStateChanged(ItemEvent e) {
 				if (e.getStateChange() == ItemEvent.SELECTED){
-					themtienvaodatabase2(120000000, thang, nam);
 					removeAllItemListeners(comboBox_FirstClass);
 				}
 			}
 		});
-	}
-	private void themtienvaodatabase2(int tien, String thang, int nam){
-		if (nam == 2023){
-			NguoiDungDAO.getInstance().doanhthu2023(tien, thang);
-		}else if (nam == 2024){
-			NguoiDungDAO.getInstance().doanhthu2024(tien, thang);
-		}
 	}
 	private void removeAllItemListeners(JComboBox<?> comboBox) {
 		for (ItemListener listener : comboBox.getItemListeners()) {

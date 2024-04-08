@@ -18,12 +18,17 @@ import javax.swing.table.DefaultTableModel;
 import Controller.QLCBController;
 import DAO.KhachHangDAO;
 import DAO.LichBayDAO;
+import DAO.XuHuongDAO;
 import Model.DSKhachHang;
 import Model.DSLichBay;
 import Model.EditLichBay;
 import Model.KhachHang;
 import Model.KhoLuuTru;
 import Model.LuuTru;
+import org.jfree.chart.ChartFactory;
+import org.jfree.chart.ChartPanel;
+import org.jfree.chart.JFreeChart;
+import org.jfree.data.general.DefaultPieDataset;
 
 import java.io.File;
 import java.io.IOException;
@@ -31,10 +36,12 @@ import javax.swing.border.LineBorder;
 
 public class ADMIN extends JFrame {
 
+    private JPanel jPanel_thongke_doanhthu;
     private KhoLuuTru khoLuuTru;
     private DSKhachHang dsKhachHang;
     private KhachHangDAO khachHangDAO;
     private LichBayDAO lichBayDAO;
+    private XuHuongDAO xuHuongDAO;
     private DSLichBay dsLichBay;
     private JPanel contentPane;
     private JTable table_lichbay;
@@ -82,6 +89,7 @@ public class ADMIN extends JFrame {
         this.dsKhachHang = new DSKhachHang();
         this.khachHangDAO = new KhachHangDAO();
         this.khoLuuTru = new KhoLuuTru();
+        this.xuHuongDAO = new XuHuongDAO();
         setTitle("ADMIN");
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setBounds(100, 100, 1212, 640);
@@ -205,43 +213,11 @@ public class ADMIN extends JFrame {
         jPanel_kholuutru.setBounds(282, 246, 991, 386);
         jPanel_kholuutru.setLayout(null);
 
-        JPanel jPanel_thongke_doanhthu = new JPanel();
-        jPanel_thongke_doanhthu.setBounds(282, 246, 991, 386);
-        jPanel_thongke_doanhthu.setLayout(null);
-
-        JPanel jPanel_thongke_loaighe = new JPanel();
-        jPanel_thongke_loaighe.setBounds(282, 246, 991, 386);
-        jPanel_thongke_loaighe.setLayout(null);
-
-        JPanel jPanel_thongke_xuhuong = new JPanel();
-        jPanel_thongke_xuhuong.setBounds(282, 246, 991, 386);
-        jPanel_thongke_xuhuong.setLayout(null);
-
         CardLayout cardLayout = new CardLayout();
         JPanel jPanel_card = new JPanel(cardLayout);
         jPanel_card.setBorder(new LineBorder(new Color(0, 0, 0)));
         jPanel_card.add(panel_lichbay, "panel_lichbay");
         jPanel_card.add(jPanel_kholuutru, "jPanel_kholuutru");
-        jPanel_card.add(jPanel_thongke_doanhthu, "jPanel_thongke_doanhthu");
-        jPanel_card.add(jPanel_thongke_loaighe, "jPanel_thongke_loaighe");
-        jPanel_card.add(jPanel_thongke_xuhuong, "jPanel_thongke_xuhuong");
-
-        JLabel lblNewLabel = new JLabel("Doanh Thu");
-        lblNewLabel.setFont(new Font("Tahoma", Font.PLAIN, 17));
-        lblNewLabel.setBounds(340, 115, 126, 70);
-        jPanel_thongke_doanhthu.add(lblNewLabel);
-        jPanel_card.add(jPanel_thongke_loaighe, "jPanel_thongke_loaighe");
-
-        JLabel lblLoaiGhe = new JLabel("Loai Ghe");
-        lblLoaiGhe.setFont(new Font("Tahoma", Font.PLAIN, 17));
-        lblLoaiGhe.setBounds(182, 103, 126, 70);
-        jPanel_thongke_loaighe.add(lblLoaiGhe);
-        jPanel_card.add(jPanel_thongke_xuhuong, "jPanel_thongke_xuhuong");
-
-        JLabel lblXuHng = new JLabel("Xu Hướng");
-        lblXuHng.setFont(new Font("Tahoma", Font.PLAIN, 17));
-        lblXuHng.setBounds(182, 132, 126, 70);
-        jPanel_thongke_xuhuong.add(lblXuHng);
 
         JScrollPane scrollPane_kholuutru = new JScrollPane();
         scrollPane_kholuutru.setBounds(10, 118, 971, 258);
@@ -619,21 +595,29 @@ public class ADMIN extends JFrame {
 
             @Override
             public void actionPerformed(ActionEvent e) {
-                cardLayout.show(jPanel_card, "jPanel_thongke_loaighe");
+
             }
         });
         jMenuItem_DoanhThu.addActionListener(new ActionListener() {
 
             @Override
             public void actionPerformed(ActionEvent e) {
-                cardLayout.show(jPanel_card, "jPanel_thongke_doanhthu");
+
             }
         });
         jMenuItem_HangBay.addActionListener(new ActionListener() {
 
             @Override
             public void actionPerformed(ActionEvent e) {
-                cardLayout.show(jPanel_card, "jPanel_thongke_xuhuong");
+                String nam = JOptionPane.showInputDialog(null, "Nhập năm cần thống kê", "Messenger", JOptionPane.OK_CANCEL_OPTION);
+                String[] nb = xuHuongDAO.laynam();
+                for (String n : nb) {
+                    if (n.equals(nam)) {
+                        BieuDoXuHuong bd = new BieuDoXuHuong((Frame) SwingUtilities.getWindowAncestor((Component) e.getSource()), nam);
+                        bd.setVisible(true);
+                        break;
+                    }
+                }
             }
         });
 
@@ -653,6 +637,7 @@ public class ADMIN extends JFrame {
                 }
             }
         });
+
         ArrayList<EditLichBay> result = lichBayDAO.selectAll();
         for (EditLichBay editLichBay : result) {
             this.themchuyenbayvaobang(editLichBay);
@@ -1058,6 +1043,7 @@ public class ADMIN extends JFrame {
 
     public void hoanthanhchuyenbay() {
         String macb = comboBox_duyetmacb.getSelectedItem() + "";
+        this.dsLichBay.laydulieutudatabase();
         if (macb.equals("")) {
             JOptionPane.showMessageDialog(this, "Chọn mã chuyến bay");
         } else {
@@ -1066,7 +1052,12 @@ public class ADMIN extends JFrame {
             if (luachon == JOptionPane.YES_OPTION) {
                 this.lichBayDAO.xoachuyenbayhoanthanh(macb); // Xóa chuyến bay ở trong lịch bay sau khi hoàn thành
                 // chuyến bay
-                this.lichBayDAO.themvaokholuutru(macb); // Thêm vào bảng lưu trữ sau khi hoàn thành
+                for (EditLichBay ed : this.dsLichBay.getDsLichBay()) {
+                    if(ed.getMaChuyenBay().equals(macb)) {
+                        String nb = ed.getNgayBay();
+                        this.lichBayDAO.themvaokholuutru(macb, nb); // Thêm vào bảng lưu trữ sau khi hoàn thành
+                    }
+                }
                 this.lichBayDAO.xoabangmachuyenbay(macb); // Xóa bảng chuyến bay để thay bảng mới
                 this.lichBayDAO.taobangchuyenbaymoi(macb); // Tạo bảng chuyến bay mới để lưu trữ thông tin khách hàng đã đi chuyến bay này
                 this.laythongtinkhachhang();

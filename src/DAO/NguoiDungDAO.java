@@ -141,36 +141,4 @@ public class NguoiDungDAO {
             JDCBCUtil.closeConnection(connection);
         }
     }
-    public void doanhthu2023(int tien, String thang){
-        Connection connection = null;
-        try{
-            connection = JDCBCUtil.getConnection();
-            String sql = "INSERT INTO doanhthu2023 (thang" + thang + ") VALUES (?)";
-            PreparedStatement pst = connection.prepareStatement(sql);
-            pst.setInt(1, tien);
-            pst.executeUpdate();
-
-            System.out.println("2023 - Thêm tiền thành công!");
-
-            JDCBCUtil.closeConnection(connection);
-        }catch (SQLException e){
-            e.printStackTrace();
-        }
-    }
-    public void doanhthu2024(int tien, String thang){
-        Connection connection = null;
-        try{
-            connection = JDCBCUtil.getConnection();
-            String sql = "INSERT INTO doanhthu2024 (thang" + thang + ") VALUES (?)";
-            PreparedStatement pst = connection.prepareStatement(sql);
-            pst.setInt(1, tien);
-            pst.executeUpdate();
-
-            System.out.println("2024 - Thêm tiền thành công!");
-
-            JDCBCUtil.closeConnection(connection);
-        }catch (SQLException e){
-            e.printStackTrace();
-        }
-    }
 }

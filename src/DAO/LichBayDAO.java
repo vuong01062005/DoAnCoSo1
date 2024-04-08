@@ -291,15 +291,16 @@ public class LichBayDAO {
         return ketqua;
     }
 
-    public int themvaokholuutru(String macb) {
+    public int themvaokholuutru(String macb, String nb) {
         int ketqua= 0;
         try {
             Connection con=JDCBCUtil.getConnection();
 
-            String sql="INSERT INTO luutru (maChuyenBay)"+
-                    " VALUES (?)";
+            String sql="INSERT INTO luutru (maChuyenBay, ngayBay)"+
+                    " VALUES (?, ?)";
             PreparedStatement pst= con.prepareStatement(sql);
             pst.setString(1, macb);
+            pst.setString(2, nb);
 
             ketqua= pst.executeUpdate();
             JDCBCUtil.closeConnection(con);
