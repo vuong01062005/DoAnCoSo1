@@ -676,7 +676,7 @@ public class NguoiDung extends JFrame {
 		for (String string : macb) {
 			comboBox_datvemachuyenbay.addItem(string);
 		}
-		comboBox_datvemachuyenbay.setBounds(448, 81, 196, 41);
+		comboBox_datvemachuyenbay.setBounds(536, 83, 196, 41);
 		jPanel_datve.add(comboBox_datvemachuyenbay);
 
 		JLabel lblNewLabel_2_3 = new JLabel("Giới Tính");
@@ -796,8 +796,23 @@ public class NguoiDung extends JFrame {
 		textField_email = new JTextField();
 		textField_email.setFont(new Font("Tahoma", Font.PLAIN, 16));
 		textField_email.setColumns(10);
-		textField_email.setBounds(665, 81, 196, 41);
+		textField_email.setBounds(780, 81, 196, 41);
 		jPanel_datve.add(textField_email);
+		textField_email.addFocusListener(new FocusListener() {
+			@Override
+			public void focusGained(FocusEvent e) {
+				if(textField_email.getText().equals("Email")) {
+					textField_email.setText("");
+				}
+			}
+
+			@Override
+			public void focusLost(FocusEvent e) {
+				if (textField_email.getText().isEmpty()){
+					textField_email.setText("Email");
+				}
+			}
+		});
 
 		btnNewButton.addActionListener(new ActionListener() {
 
@@ -1183,6 +1198,7 @@ public class NguoiDung extends JFrame {
 						this.comboBox_BusinessClass.setSelectedIndex(0);
 						this.comboBox_EconomyClass.setSelectedIndex(0);
 						this.comboBox_FirstClass.setSelectedIndex(0);
+						this.textField_email.setText("Email");
 						this.NewLabel_giave.setText("");
 						layout.show(panel_3, "panel1");
 						this.NewLabel_anhchuyenkhoan.setIcon(null);
