@@ -7,6 +7,8 @@ import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import javax.imageio.ImageIO;
 import java.awt.event.*;
+import java.io.*;
+import java.net.Socket;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -30,13 +32,10 @@ import org.jfree.chart.ChartPanel;
 import org.jfree.chart.JFreeChart;
 import org.jfree.data.general.DefaultPieDataset;
 
-import java.io.File;
-import java.io.IOException;
 import javax.swing.border.LineBorder;
 
 public class ADMIN extends JFrame {
-
-    private JPanel jPanel_thongke_doanhthu;
+    private JTextField textField_sendChat;
     private KhoLuuTru khoLuuTru;
     private DSKhachHang dsKhachHang;
     private KhachHangDAO khachHangDAO;
@@ -63,21 +62,39 @@ public class ADMIN extends JFrame {
     private JMenuBar jMenuBar;
     private JMenu jMenu_ThongKe;
     private JMenuItem jMenuItem_LoaiGhe, jMenuItem_DoanhThu, jMenuItem_HangBay;
+    private Socket socket;
+    private BufferedReader reader;
+    private PrintWriter writer;
 
     /**
      * Launch the application.
      */
     public static void main(String[] args) {
-        EventQueue.invokeLater(new Runnable() {
-            public void run() {
-                try {
+        EventQueue.invokeLater(() -> {
+            try {
+                // Kiểm tra kết nối đến server
+                if (isServerRunning("localhost", 9090)) {
+                    // Nếu server đang chạy, hiển thị giao diện
                     ADMIN frame = new ADMIN();
                     frame.setVisible(true);
-                } catch (Exception e) {
-                    e.printStackTrace();
+                } else {
+                    // Nếu server không chạy, hiển thị thông báo
+                    JOptionPane.showMessageDialog(null, "Không thể kết nối đến server.");
                 }
+            } catch (Exception e) {
+                e.printStackTrace();
             }
         });
+    }
+
+    private static boolean isServerRunning(String address, int port) {
+        try (Socket ignored = new Socket(address, port)) {
+            // Nếu kết nối thành công, server đang chạy
+            return true;
+        } catch (Exception e) {
+            // Nếu không kết nối được, server không chạy
+            return false;
+        }
     }
 
     /**
@@ -92,7 +109,7 @@ public class ADMIN extends JFrame {
         this.xuHuongDAO = new XuHuongDAO();
         setTitle("ADMIN");
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        setBounds(100, 100, 1212, 640);
+        setBounds(100, 100, 1212, 716);
         setLocationRelativeTo(null);
         contentPane = new JPanel();
         contentPane.setBorder(new EmptyBorder(5, 5, 5, 5));
@@ -103,7 +120,7 @@ public class ADMIN extends JFrame {
         JPanel panel = new JPanel();
         panel.setBorder(new LineBorder(new Color(0, 0, 0)));
         panel.setBackground(new Color(255, 255, 255));
-        panel.setBounds(2, 233, 201, 338);
+        panel.setBounds(2, 233, 201, 408);
         contentPane.add(panel);
         panel.setLayout(null);
 
@@ -176,6 +193,14 @@ public class ADMIN extends JFrame {
             }
         });
 
+        JButton btnNewButton_chat = new JButton("Chat");
+        btnNewButton_chat.setHorizontalAlignment(SwingConstants.LEADING);
+        btnNewButton_chat.setForeground(Color.WHITE);
+        btnNewButton_chat.setFont(new Font("Tahoma", Font.PLAIN, 20));
+        btnNewButton_chat.setBackground(new Color(128, 64, 64));
+        btnNewButton_chat.setBounds(10, 340, 180, 60);
+        panel.add(btnNewButton_chat);
+
         JButton btnNewButton_5 = new JButton("K.Lưu Trữ");
         btnNewButton_5.setHorizontalAlignment(SwingConstants.LEADING);
         btnNewButton_5.setBackground(new Color(128, 64, 64));
@@ -196,7 +221,7 @@ public class ADMIN extends JFrame {
         panel_lichbay.setLayout(null);
 
         JScrollPane scrollPane = new JScrollPane();
-        scrollPane.setBounds(10, 202, 971, 180);
+        scrollPane.setBounds(10, 202, 971, 250);
         panel_lichbay.add(scrollPane);
         panel_lichbay.setBackground(Color.white);
         table_lichbay = new JTable();
@@ -213,11 +238,17 @@ public class ADMIN extends JFrame {
         jPanel_kholuutru.setBounds(282, 246, 991, 386);
         jPanel_kholuutru.setLayout(null);
 
+        JPanel panel_chat = new JPanel();
+        panel_chat.setBackground(new Color(255, 255, 255));
+        panel_chat.setBounds(282, 246, 991, 386);
+        panel_chat.setLayout(null);
+
         CardLayout cardLayout = new CardLayout();
         JPanel jPanel_card = new JPanel(cardLayout);
         jPanel_card.setBorder(new LineBorder(new Color(0, 0, 0)));
         jPanel_card.add(panel_lichbay, "panel_lichbay");
         jPanel_card.add(jPanel_kholuutru, "jPanel_kholuutru");
+        jPanel_card.add(panel_chat, "panel_chat");
 
         JScrollPane scrollPane_kholuutru = new JScrollPane();
         scrollPane_kholuutru.setBounds(10, 118, 971, 258);
@@ -412,7 +443,7 @@ public class ADMIN extends JFrame {
         jPanel_card.add(jPanel_duyet, "jPanel_duyet");
 
         JScrollPane scrollPane_1 = new JScrollPane();
-        scrollPane_1.setBounds(10, 215, 971, 167);
+        scrollPane_1.setBounds(10, 215, 971, 237);
         jPanel_duyet.add(scrollPane_1);
 
         table_khachang = new JTable();
@@ -523,8 +554,28 @@ public class ADMIN extends JFrame {
         Image img_hthanh = ImageIO.read(getClass().getResource("hoanthanh.png"));
         btnNewButton_4.setIcon(new ImageIcon(img_hthanh));
 
+        JScrollPane scrollPane_2 = new JScrollPane();
+        scrollPane_2.setBounds(10, 91, 825, 290);
+        panel_chat.add(scrollPane_2);
+
+        JTextArea textArea_message = new JTextArea();
+        textArea_message.setEditable(false);
+        textArea_message.setFont(new Font("Monospaced", Font.PLAIN, 18));
+        scrollPane_2.setViewportView(textArea_message);
+
+        textField_sendChat = new JTextField();
+        textField_sendChat.setFont(new Font("Tahoma", Font.PLAIN, 18));
+        textField_sendChat.setBounds(10, 407, 825, 45);
+        panel_chat.add(textField_sendChat);
+        textField_sendChat.setColumns(10);
+
+        JButton btnNewButton_send = new JButton("Send");
+        btnNewButton_send.setFont(new Font("Tahoma", Font.PLAIN, 20));
+        btnNewButton_send.setBounds(845, 407, 134, 45);
+        panel_chat.add(btnNewButton_send);
+
         jPanel_duyet.add(btnNewButton_4);
-        jPanel_card.setBounds(205, 177, 991, 394);
+        jPanel_card.setBounds(205, 177, 991, 464);
         btnNewButton_lichbay.addActionListener(new ActionListener() {
 
             @Override
@@ -546,13 +597,55 @@ public class ADMIN extends JFrame {
                 cardLayout.show(jPanel_card, "jPanel_kholuutru");
             }
         });
+
+        btnNewButton_send.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                String message = textField_sendChat.getText();
+                writer.println(message);
+                textField_sendChat.setText("");
+            }
+        });
+
+        btnNewButton_chat.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                cardLayout.show(jPanel_card, "panel_chat");
+                try {
+                    socket = new Socket("localhost", 9090);
+                    reader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+                    writer = new PrintWriter(socket.getOutputStream(), true);
+
+                    // Gửi tên của client tới server khi kết nối
+                    writer.println("ADMIN");
+
+                    // Tạo một luồng mới để nhận tin nhắn từ server
+                    Thread receiveThread = new Thread(new Runnable() {
+                        @Override
+                        public void run() {
+                            try {
+                                String message;
+                                while ((message = reader.readLine()) != null) {
+                                    textArea_message.append(message + "\n");
+                                }
+                            } catch (IOException e) {
+                                e.printStackTrace();
+                            }
+                        }
+                    });
+                    receiveThread.start();
+                } catch (IOException ex) {
+                    ex.printStackTrace();
+                }
+            }
+        });
         contentPane.add(jPanel_card);
 
         JPanel panel_art = new JPanel() {
             @Override
             protected void paintComponent(Graphics g) {
                 super.paintComponent(g);
-                ImageIcon imageIcon = new ImageIcon("C:/Users/THANH LOI/Pictures/QLCB/anhnen.jpg");
+                ImageIcon imageIcon = new ImageIcon("D:\\Workspace\\Intell\\QLCB\\src\\View\\nen2.jpg");
                 Image image = imageIcon.getImage();
                 g.drawImage(image, 0, 0, getWidth(), getHeight(), this);
             }
@@ -595,29 +688,26 @@ public class ADMIN extends JFrame {
 
             @Override
             public void actionPerformed(ActionEvent e) {
-
+                BieuDoXuHuong bd = new BieuDoXuHuong();
+                bd.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+                bd.setVisible(true);
             }
         });
         jMenuItem_DoanhThu.addActionListener(new ActionListener() {
-
             @Override
             public void actionPerformed(ActionEvent e) {
-
+                TKDoanhThu bd = new TKDoanhThu();
+                bd.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+                bd.setVisible(true);
             }
         });
         jMenuItem_HangBay.addActionListener(new ActionListener() {
 
             @Override
             public void actionPerformed(ActionEvent e) {
-                String nam = JOptionPane.showInputDialog(null, "Nhập năm cần thống kê", "Messenger", JOptionPane.OK_CANCEL_OPTION);
-                String[] nb = xuHuongDAO.laynam();
-                for (String n : nb) {
-                    if (n.equals(nam)) {
-                        BieuDoXuHuong bd = new BieuDoXuHuong((Frame) SwingUtilities.getWindowAncestor((Component) e.getSource()), nam);
-                        bd.setVisible(true);
-                        break;
-                    }
-                }
+                TKHangBayDuocDat tk = new TKHangBayDuocDat();
+                tk.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+                tk.setVisible(true);
             }
         });
 
@@ -1050,12 +1140,11 @@ public class ADMIN extends JFrame {
             int luachon = JOptionPane.showConfirmDialog(this, "Xác nhận chuyến bay đã hoàn thành?", "",
                     JOptionPane.YES_NO_OPTION);
             if (luachon == JOptionPane.YES_OPTION) {
-                this.lichBayDAO.xoachuyenbayhoanthanh(macb); // Xóa chuyến bay ở trong lịch bay sau khi hoàn thành
-                // chuyến bay
+                this.lichBayDAO.xoachuyenbayhoanthanh(macb); // Xóa chuyến bay ở trong lịch bay sau khi hoàn thành chuyến bay
                 for (EditLichBay ed : this.dsLichBay.getDsLichBay()) {
                     if(ed.getMaChuyenBay().equals(macb)) {
                         String nb = ed.getNgayBay();
-                        this.lichBayDAO.themvaokholuutru(macb, nb); // Thêm vào bảng lưu trữ sau khi hoàn thành
+                        this.lichBayDAO.themvaokholuutru(macb, nb, ed.getHangBay()); // Thêm vào bảng lưu trữ sau khi hoàn thành
                     }
                 }
                 this.lichBayDAO.xoabangmachuyenbay(macb); // Xóa bảng chuyến bay để thay bảng mới

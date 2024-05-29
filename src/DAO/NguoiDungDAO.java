@@ -5,6 +5,7 @@ import Model.TKAdmin;
 import Model.TKNgDung;
 import View.DangNhap;
 import View.NguoiDung;
+import chat2.MaHoa;
 
 import javax.swing.*;
 import java.sql.Connection;
@@ -14,6 +15,7 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 
 public class NguoiDungDAO {
+    private MaHoa maHoa;
     public static NguoiDungDAO getInstance(){
         return new NguoiDungDAO();
     }
@@ -21,10 +23,11 @@ public class NguoiDungDAO {
     public int dangKyTaiKhoan(TKNgDung ngDung){
         try{
             Connection connection = JDCBCUtil.getConnection();
-            String sql = "INSERT INTO dstknguoidung (userName, password) VALUES (?, ?)";
+            String sql = "INSERT INTO dstknguoidung (userName, password, displayname) VALUES (?, ?, ?)";
             PreparedStatement pst = connection.prepareStatement(sql);
             pst.setString(1, ngDung.getTaiKhoanNG());
             pst.setString(2, ngDung.getMatKhauNG());
+            pst.setString(3, ngDung.getTenHienThi());
             pst.executeUpdate();
             JDCBCUtil.closeConnection(connection);
         }catch (SQLException e){
@@ -89,7 +92,8 @@ public class NguoiDungDAO {
             while (resultSet.next()){
                 String taiKhoan = resultSet.getString("userName");
                 String matKhau = resultSet.getString("password");
-                TKNgDung ngDung = new TKNgDung(taiKhoan, matKhau);
+                String tenht = resultSet.getString("displayname");
+                TKNgDung ngDung = new TKNgDung(taiKhoan, matKhau, tenht);
                 dsTraVe.add(ngDung);
             }
             JDCBCUtil.closeConnection(connection);
@@ -140,5 +144,26 @@ public class NguoiDungDAO {
         }finally {
             JDCBCUtil.closeConnection(connection);
         }
+    }
+
+    public String laytendangnhap(String taiKhoan, String matKhau) {
+        String tenDangNhap = null;
+        try {
+            Connection connection = JDCBCUtil.getConnection();
+            String sql = "SELECT displayname FROM dstknguoidung WHERE userName = ? AND password = ?";
+            PreparedStatement pst = connection.prepareStatement(sql);
+            pst.setString(1, taiKhoan);
+            pst.setString(2, matKhau);
+
+            ResultSet rs = pst.executeQuery();
+            if (rs.next()) {
+                tenDangNhap = rs.getString("displayname");
+            }
+
+            JDCBCUtil.closeConnection(connection);
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return tenDangNhap;
     }
 }

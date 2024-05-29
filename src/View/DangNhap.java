@@ -19,11 +19,15 @@ import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.util.Base64;
 import java.util.Random;
 
 public class DangNhap extends JFrame {
 
 	private static final long serialVersionUID = 1L;
+	private JTextField textField_displayName;
+	private JLabel lblDisplayName_dangky;
 	private JPanel contentPane;
 	private JPanel panelDangNhap;
 	private JTextField txtUsername_login;
@@ -261,7 +265,7 @@ public class DangNhap extends JFrame {
 
 		panelTieude_dangky = new JPanel();
 		panelTieude_dangky.setBackground(Color.LIGHT_GRAY);
-		panelTieude_dangky.setBounds(0, 0, 322, 78);
+		panelTieude_dangky.setBounds(0, 0, 322, 44);
 		panelDangKy.add(panelTieude_dangky);
 		panelTieude_dangky.setLayout(new BorderLayout(0, 0));
 
@@ -274,39 +278,39 @@ public class DangNhap extends JFrame {
 		txtUsername_dangky.setHorizontalAlignment(SwingConstants.LEFT);
 		txtUsername_dangky.setFont(new Font("Tahoma", Font.BOLD, 15));
 		txtUsername_dangky.setColumns(10);
-		txtUsername_dangky.setBounds(32, 120, 258, 35);
+		txtUsername_dangky.setBounds(32, 157, 258, 35);
 		panelDangKy.add(txtUsername_dangky);
 
 		lblUsername_dangky = new JLabel("Tài khoản");
 		lblUsername_dangky.setFont(new Font("Tahoma", Font.BOLD, 15));
-		lblUsername_dangky.setBounds(32, 93, 115, 25);
+		lblUsername_dangky.setBounds(32, 122, 115, 25);
 		panelDangKy.add(lblUsername_dangky);
 
 		lblPassword_dangky = new JLabel("Mật khẩu");
 		lblPassword_dangky.setFont(new Font("Tahoma", Font.BOLD, 15));
-		lblPassword_dangky.setBounds(32, 165, 115, 25);
+		lblPassword_dangky.setBounds(32, 202, 115, 25);
 		panelDangKy.add(lblPassword_dangky);
 
 		txtPassword_dangky = new JPasswordField();
-		txtPassword_dangky.setBounds(32, 195, 258, 35);
+		txtPassword_dangky.setBounds(32, 237, 258, 35);
 		panelDangKy.add(txtPassword_dangky);
 
 		btnDangKy = new JButton("Đăng ký");
 		btnDangKy.setFont(new Font("Tahoma", Font.BOLD, 20));
 		btnDangKy.setBackground(Color.WHITE);
-		btnDangKy.setBounds(32, 270, 258, 45);
+		btnDangKy.setBounds(32, 305, 258, 35);
 		panelDangKy.add(btnDangKy);
 		btnDangKy.addActionListener(controllerDN);
 
 		cbAdmin_dangky = new JCheckBox("Admin");
 		cbAdmin_dangky.setFont(new Font("Tahoma", Font.BOLD, 12));
-		cbAdmin_dangky.setBounds(32, 240, 93, 21);
+		cbAdmin_dangky.setBounds(32, 278, 93, 21);
 		panelDangKy.add(cbAdmin_dangky);
 
 		btnBack_dangky = new JButton("Quay lại");
 		btnBack_dangky.setBackground(new Color(255, 255, 255));
 		btnBack_dangky.setFont(new Font("Tahoma", Font.BOLD, 15));
-		btnBack_dangky.setBounds(87, 330, 203, 45);
+		btnBack_dangky.setBounds(87, 350, 203, 35);
 		panelDangKy.add(btnBack_dangky);
 		btnBack_dangky.addActionListener(new ActionListener() {
 			@Override
@@ -321,8 +325,20 @@ public class DangNhap extends JFrame {
 		btnXemlai_dangky = new JButton("?");
 		btnXemlai_dangky.setBackground(new Color(255, 255, 255));
 		btnXemlai_dangky.setFont(new Font("Tahoma", Font.BOLD, 15));
-		btnXemlai_dangky.setBounds(32, 330, 45, 45);
+		btnXemlai_dangky.setBounds(32, 350, 45, 35);
 		panelDangKy.add(btnXemlai_dangky);
+
+		lblDisplayName_dangky = new JLabel("Tên Hiển Thị");
+		lblDisplayName_dangky.setFont(new Font("Tahoma", Font.BOLD, 15));
+		lblDisplayName_dangky.setBounds(32, 52, 155, 25);
+		panelDangKy.add(lblDisplayName_dangky);
+
+		textField_displayName = new JTextField();
+		textField_displayName.setHorizontalAlignment(SwingConstants.LEFT);
+		textField_displayName.setFont(new Font("Tahoma", Font.BOLD, 15));
+		textField_displayName.setColumns(10);
+		textField_displayName.setBounds(32, 77, 258, 35);
+		panelDangKy.add(textField_displayName);
 		btnXemlai_dangky.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
@@ -655,6 +671,8 @@ public class DangNhap extends JFrame {
 				throw new RuntimeException(e);
 			}
 			nguoiDung.setVisible(true);
+			String tenht = NguoiDungDAO.getInstance().laytendangnhap(taiKhoan, new String(matKhau));
+			nguoiDung.lblNewLabel_tenTK.setText(tenht);
 			dispose();
 		} else {
 			JOptionPane.showMessageDialog(this, "Nhập sai tài khoản/mật khẩu", "ERROR", JOptionPane.ERROR_MESSAGE);
@@ -709,7 +727,7 @@ public class DangNhap extends JFrame {
 	private void thucHienDoiMatKhauNguoiDung(String taiKhoan, String matKhau, String matKhauMoi){
 		boolean kiemTraNgDung = NguoiDungDAO.getInstance().kiemTraTaiKhoanMatKhauNguoiDung(taiKhoan, matKhau);
 		if (kiemTraNgDung){
-			TKNgDung tkNgDung = new TKNgDung(taiKhoan, matKhauMoi);
+			TKNgDung tkNgDung = new TKNgDung(taiKhoan, matKhauMoi, null);
 			NguoiDungDAO.getInstance().doiMatKhau(tkNgDung);
 			thongbao = "Đổi mật khẩu thành công!\n" + "Mật khẩu mới của bạn là: "+matKhauMoi;
 			JOptionPane.showMessageDialog(this, "Đổi mật khẩu thành công!\n" + "Mật khẩu mới của bạn là: "+matKhauMoi);
@@ -720,6 +738,8 @@ public class DangNhap extends JFrame {
 	public void thucHienDangKyTaiKhoan(){
 		String taiKhoan = txtUsername_dangky.getText();
 		char[] matKhau = txtPassword_dangky.getPassword();
+		String encodepass = Base64.getEncoder().encodeToString(new String(matKhau).getBytes());
+		String tenht = textField_displayName.getText();
 
 		if (taiKhoan.isEmpty() || matKhau.length == 0){
 			JOptionPane.showMessageDialog(this, "Vui lòng nhập tài khoản/mật khẩu", "ERROR", JOptionPane.ERROR_MESSAGE);
@@ -730,7 +750,7 @@ public class DangNhap extends JFrame {
 		}else {
 			if (cbAdmin_dangky.isSelected()){
 				thucHienDangKyTaiKhoanAdmin(taiKhoan, new String(matKhau));
-			}else thucHienDangKyTaiKhoanNguoiDung(taiKhoan, new String(matKhau));
+			}else thucHienDangKyTaiKhoanNguoiDung(taiKhoan, new String(matKhau), tenht);
 		}
 		txtUsername_dangky.setText("");
 		txtPassword_dangky.setText("");
@@ -759,13 +779,13 @@ public class DangNhap extends JFrame {
 			}
 		}
 	}
-	private void thucHienDangKyTaiKhoanNguoiDung(String taiKhoan, String matKhau){
+	private void thucHienDangKyTaiKhoanNguoiDung(String taiKhoan, String matKhau, String tenHt){
 		boolean kiemTraNgDung = NguoiDungDAO.getInstance().kiemTraTaiKhoanTonTai(taiKhoan);
 		if (kiemTraNgDung){
 			JOptionPane.showMessageDialog(this, "Tài khoản/mật khẩu không chính xác!", "ERROR", JOptionPane.ERROR_MESSAGE);
 			return;
 		}
-		TKNgDung tkNgDung = new TKNgDung(taiKhoan, matKhau);
+		TKNgDung tkNgDung = new TKNgDung(taiKhoan, matKhau, tenHt);
 		NguoiDungDAO.getInstance().dangKyTaiKhoan(tkNgDung);
 		thongbao = "Đăng ký tài khoản: " + taiKhoan + ", mật khẩu: "+ matKhau + " thành công!";
 		JOptionPane.showMessageDialog(this, thongbao, "Thông báo", JOptionPane.INFORMATION_MESSAGE);
@@ -823,7 +843,7 @@ public class DangNhap extends JFrame {
 		if (kiemTraTonTai){
 			if (captcha1.equalsIgnoreCase(captcha2)){
 				String matKhauMoi = String.valueOf(random());
-				TKNgDung tkNgDung = new TKNgDung(taiKhoan, matKhauMoi);
+				TKNgDung tkNgDung = new TKNgDung(taiKhoan, matKhauMoi, null);
 				NguoiDungDAO.getInstance().quenMatKhau(tkNgDung);
 				thongbao = "Lấy lại mật khẩu thành công!\nMật khẩu mới của bạn là: "+ matKhauMoi;
 				JOptionPane.showMessageDialog(this, thongbao, "Thông báo", JOptionPane.INFORMATION_MESSAGE);
@@ -882,7 +902,7 @@ public class DangNhap extends JFrame {
 	public void thucHienXoaTaiKhoanNguoiDung(String taiKhoan, String matKhau){
 		boolean kiemTraTonTai = NguoiDungDAO.getInstance().kiemTraTaiKhoanMatKhauNguoiDung(taiKhoan, matKhau);
 		if (kiemTraTonTai){
-			TKNgDung nguoiDung = new TKNgDung(taiKhoan, matKhau);
+			TKNgDung nguoiDung = new TKNgDung(taiKhoan, matKhau, null);
 			NguoiDungDAO.getInstance().xoaTaiKhoan(nguoiDung);
 			thongbao = "Xóa tài khoản "+ taiKhoan + " thành công!";
 			JOptionPane.showMessageDialog(this, thongbao, "Thông báo", JOptionPane.INFORMATION_MESSAGE);

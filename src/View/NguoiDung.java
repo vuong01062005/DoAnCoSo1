@@ -10,7 +10,6 @@ import Controller.ControllerDatVe;
 import Controller.QLCBController;
 import DAO.KhachHangDAO;
 import DAO.LichBayDAO;
-import DAO.NguoiDungDAO;
 import Mail.Emailto;
 import Model.DSKhachHang;
 import Model.DSLichBay;
@@ -19,32 +18,23 @@ import Model.KhachHang;
 
 import java.awt.BorderLayout;
 import java.awt.CardLayout;
-import java.awt.FlowLayout;
 import javax.swing.JButton;
 import java.awt.Font;
 import java.awt.Graphics;
 import java.awt.Image;
 
-import javax.swing.JSeparator;
 import java.awt.Component;
-import java.awt.Container;
 
 import javax.imageio.ImageIO;
-import javax.print.DocFlavor.URL;
-import javax.swing.AbstractButton;
-import javax.swing.Box;
 import javax.swing.ButtonGroup;
-import javax.swing.Icon;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 
 import java.awt.Color;
 import java.awt.Panel;
-import java.awt.Toolkit;
 import java.awt.event.*;
-import java.io.File;
-import java.io.FileReader;
-import java.io.IOException;
+import java.io.*;
+import java.net.Socket;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.*;
@@ -63,6 +53,9 @@ import javax.swing.border.LineBorder;
 
 public class NguoiDung extends JFrame {
 
+	public JTextArea textArea_chat;
+	private JTextField textField_chatSend;
+	public JLabel lblNewLabel_tenTK;
 	private DSKhachHang dsKhachHang;
 	private KhachHangDAO khachHangDAO;
 	private LichBayDAO lichBayDAO;
@@ -107,21 +100,39 @@ public class NguoiDung extends JFrame {
 	private JLabel NewLabel_giave;
 	private CardLayout layout;
 	private JPanel panel_3;
+	private Socket socket;
+	private BufferedReader reader;
+	private PrintWriter writer;
 
 	/**
 	 * Launch the application.
 	 */
 	public static void main(String[] args) {
-		EventQueue.invokeLater(new Runnable() {
-			public void run() {
-				try {
+		EventQueue.invokeLater(() -> {
+			try {
+				// Kiểm tra kết nối đến server
+				if (isServerRunning("localhost", 9090)) {
+					// Nếu server đang chạy, hiển thị giao diện
 					NguoiDung frame = new NguoiDung();
 					frame.setVisible(true);
-				} catch (Exception e) {
-					e.printStackTrace();
+				} else {
+					// Nếu server không chạy, hiển thị thông báo
+					JOptionPane.showMessageDialog(null, "Không thể kết nối đến server.");
 				}
+			} catch (Exception e) {
+				e.printStackTrace();
 			}
 		});
+	}
+
+	private static boolean isServerRunning(String address, int port) {
+		try (Socket ignored = new Socket(address, port)) {
+			// Nếu kết nối thành công, server đang chạy
+			return true;
+		} catch (Exception e) {
+			// Nếu không kết nối được, server không chạy
+			return false;
+		}
 	}
 
 	/**
@@ -137,7 +148,7 @@ public class NguoiDung extends JFrame {
 		this.khachHangDAO = new KhachHangDAO();
 		setTitle("Người Dùng");
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-		setBounds(100, 100, 1249, 609);
+		setBounds(100, 100, 1249, 669);
 		setLocationRelativeTo(null);
 		contentPane = new JPanel();
 		contentPane.setBorder(new EmptyBorder(5, 5, 5, 5));
@@ -152,7 +163,7 @@ public class NguoiDung extends JFrame {
 		JPanel panel = new JPanel();
 		panel.setBorder(new LineBorder(new Color(0, 0, 0)));
 		panel.setBackground(new Color(255, 255, 255));
-		panel.setBounds(2, 233, 201, 338);
+		panel.setBounds(2, 233, 201, 394);
 		contentPane.add(panel);
 		panel.setLayout(null);
 
@@ -222,13 +233,20 @@ public class NguoiDung extends JFrame {
 		btnNewButton_1_1_2.setIcon(new ImageIcon(img4));
 		panel.add(btnNewButton_1_1_2);
 
+		JButton btnNewButton_chat = new JButton("Chat");
+		btnNewButton_chat.setForeground(Color.WHITE);
+		btnNewButton_chat.setFont(new Font("Tahoma", Font.PLAIN, 20));
+		btnNewButton_chat.setBackground(new Color(0, 128, 237));
+		btnNewButton_chat.setBounds(10, 340, 180, 44);
+		panel.add(btnNewButton_chat);
+
 		Panel panel_lichbay = new Panel();
 		panel_lichbay.setBackground(new Color(255, 255, 255));
 		panel_lichbay.setBounds(260, 246, 1013, 387);
 		panel_lichbay.setLayout(null);
 
 		JScrollPane scrollPane = new JScrollPane();
-		scrollPane.setBounds(10, 176, 1008, 206);
+		scrollPane.setBounds(10, 176, 1008, 262);
 		panel_lichbay.add(scrollPane);
 		scrollPane.setBackground(Color.black);
 
@@ -298,12 +316,18 @@ public class NguoiDung extends JFrame {
 		jPanel_tracuu.setBounds(260, 246, 1013, 387);
 		jPanel_tracuu.setLayout(null);
 
+		JPanel jPanel_chat = new JPanel();
+		jPanel_chat.setBackground(new Color(192, 192, 192));
+		jPanel_chat.setBounds(260, 246, 1013, 387);
+		jPanel_chat.setLayout(null);
+
 		cardLayout = new CardLayout();
 		jPanel_card = new JPanel(cardLayout);
 		jPanel_card.setBorder(new LineBorder(new Color(0, 0, 0)));
 		jPanel_card.add(panel_lichbay, "panel_lichbay");
 		jPanel_card.add(jPanel_tracuu, "jPanel_tracuu");
 		jPanel_card.add(jPanel_datghe, "jPanel_datghe");
+		jPanel_card.add(jPanel_chat, "jPanel_chat");
 
 		JPanel panel_1 = new JPanel();
 		panel_1.setBackground(new Color(230, 230, 230));
@@ -440,12 +464,11 @@ public class NguoiDung extends JFrame {
 			@Override
 			protected void paintComponent(Graphics g) {
 				super.paintComponent(g);
-				ImageIcon imageIcon = new ImageIcon("C:/Users/THANH LOI/Pictures/QLCB/qr code.png");
+				ImageIcon imageIcon = new ImageIcon("D:\\Workspace\\Intell\\QLCB\\src\\View\\qrcode.png");
 				Image image = imageIcon.getImage();
 				g.drawImage(image, 0,0,getWidth(), getHeight(),this);
 			}
 		};
-		lblQRCode.setBackground(Color.WHITE);
 		lblQRCode.setBounds(395, 15, 180, 180);
 		panel_tt.add(lblQRCode);
 
@@ -660,7 +683,7 @@ public class NguoiDung extends JFrame {
 		jPanel_card.add(jPanel_datve, "jPanel_datve");
 
 		JScrollPane scrollPane_1 = new JScrollPane();
-		scrollPane_1.setBounds(10, 176, 1010, 200);
+		scrollPane_1.setBounds(10, 176, 1010, 262);
 		jPanel_datve.add(scrollPane_1);
 
 		table_datve = new JTable();
@@ -684,6 +707,35 @@ public class NguoiDung extends JFrame {
 		lblNewLabel_2_3.setBounds(448, 11, 142, 41);
 		lblNewLabel_2_3.setForeground(Color.white);
 		jPanel_datve.add(lblNewLabel_2_3);
+
+		JLabel lblNewLabel_8 = new JLabel("Tên Tài Khoản:");
+		lblNewLabel_8.setFont(new Font("Tahoma", Font.PLAIN, 20));
+		lblNewLabel_8.setBounds(10, 10, 160, 39);
+		jPanel_chat.add(lblNewLabel_8);
+
+		lblNewLabel_tenTK = new JLabel("");
+		lblNewLabel_tenTK.setFont(new Font("Tahoma", Font.PLAIN, 20));
+		lblNewLabel_tenTK.setBounds(180, 10, 256, 39);
+		jPanel_chat.add(lblNewLabel_tenTK);
+
+		JScrollPane scrollPane_chat = new JScrollPane((Component) null);
+		scrollPane_chat.setBounds(10, 88, 665, 244);
+		jPanel_chat.add(scrollPane_chat);
+
+		textArea_chat = new JTextArea();
+		textArea_chat.setFont(new Font("Monospaced", Font.PLAIN, 18));
+		scrollPane_chat.setViewportView(textArea_chat);
+
+		textField_chatSend = new JTextField();
+		textField_chatSend.setFont(new Font("Tahoma", Font.PLAIN, 18));
+		textField_chatSend.setBounds(10, 372, 665, 39);
+		jPanel_chat.add(textField_chatSend);
+		textField_chatSend.setColumns(10);
+
+		JButton btnNewButton_chatSend = new JButton("Send");
+		btnNewButton_chatSend.setFont(new Font("Tahoma", Font.PLAIN, 20));
+		btnNewButton_chatSend.setBounds(685, 371, 125, 40);
+		jPanel_chat.add(btnNewButton_chatSend);
 
 		textField_dtenkhachhang = new JTextField("Tên Đặt Vé");
 		textField_dtenkhachhang.setFont(new Font("Tahoma", Font.PLAIN, 16));
@@ -778,7 +830,7 @@ public class NguoiDung extends JFrame {
 		NewRadioButton_dnu.setFont(new Font("Tahoma", Font.PLAIN, 20));
 		NewRadioButton_dnu.setBounds(665, 11, 67, 41);
 		jPanel_datve.add(NewRadioButton_dnu);
-		jPanel_card.setBounds(205, 177, 1030, 394);
+		jPanel_card.setBounds(205, 177, 1030, 450);
 
 		btn_groupDgioitinh = new ButtonGroup();
 		btn_groupDgioitinh.add(NewRadioButton_dnam);
@@ -793,7 +845,7 @@ public class NguoiDung extends JFrame {
 		btnNewButton_5.setForeground(Color.white);
 		jPanel_datve.add(btnNewButton_5);
 
-		textField_email = new JTextField();
+		textField_email = new JTextField("Email");
 		textField_email.setFont(new Font("Tahoma", Font.PLAIN, 16));
 		textField_email.setColumns(10);
 		textField_email.setBounds(780, 81, 196, 41);
@@ -835,6 +887,49 @@ public class NguoiDung extends JFrame {
 				cardLayout.show(jPanel_card, "jPanel_tracuu");
 			}
 		});
+
+		btnNewButton_chat.addActionListener(new ActionListener() {
+
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				cardLayout.show(jPanel_card, "jPanel_chat");
+				try {
+					socket = new Socket("localhost", 9090);
+					reader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+					writer = new PrintWriter(socket.getOutputStream(), true);
+
+					// Gửi tên của client tới server khi kết nối
+					writer.println(lblNewLabel_tenTK.getText());
+
+					// Tạo một luồng mới để nhận tin nhắn từ server
+					Thread receiveThread = new Thread(new Runnable() {
+						@Override
+						public void run() {
+							try {
+								String message;
+								while ((message = reader.readLine()) != null) {
+									textArea_chat.append(message + "\n");
+								}
+							} catch (IOException e) {
+								e.printStackTrace();
+							}
+						}
+					});
+					receiveThread.start();
+				} catch (IOException ex) {
+					ex.printStackTrace();
+				}
+			}
+		});
+		btnNewButton_chatSend.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				String message = textField_chatSend.getText();
+				writer.println(message);
+				textField_chatSend.setText("");
+			}
+		});
+
 		btnNewButton_1_1_1.addActionListener(new ActionListener() {
 
 			@Override
@@ -907,7 +1002,7 @@ public class NguoiDung extends JFrame {
 			@Override
 			protected void paintComponent(Graphics g) {
 				super.paintComponent(g);
-				ImageIcon imageIcon = new ImageIcon("C:/Users/THANH LOI/Pictures/QLCB/anhenn11.jpg");
+				ImageIcon imageIcon = new ImageIcon("D:\\Workspace\\Intell\\QLCB\\src\\View\\nen1.jpg");
 				Image icon = imageIcon.getImage();
 				g.drawImage(icon, 0,0,getWidth(), getHeight(), this);
 			}
