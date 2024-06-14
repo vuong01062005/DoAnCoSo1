@@ -291,7 +291,7 @@ public class NguoiDung extends JFrame {
 		panel_lichbay.add(textField_lbtimngaybay);
 
 		JButton btnNewButton_2 = new JButton(" Tìm");
-		btnNewButton_2.addActionListener(controller);
+		btnNewButton_2.addActionListener(controllerDatVe);
 		btnNewButton_2.setFont(new Font("Tahoma", Font.PLAIN, 20));
 		btnNewButton_2.setBounds(789, 26, 140, 55);
 		btnNewButton_2.setBackground(new Color(255, 128, 128));

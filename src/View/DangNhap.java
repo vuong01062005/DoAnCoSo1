@@ -5,6 +5,7 @@ import DAO.AdminDAO;
 import DAO.NguoiDungDAO;
 import Model.TKAdmin;
 import Model.TKNgDung;
+import Socket.MaHoa;
 
 import java.awt.EventQueue;
 
@@ -19,8 +20,6 @@ import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
-import java.util.Base64;
 import java.util.Random;
 
 public class DangNhap extends JFrame {
@@ -79,6 +78,7 @@ public class DangNhap extends JFrame {
 	private JPasswordField txtPassword_xoatk;
 	private JCheckBox cbAdmin_xoatk;
 	private JButton btnXacNhan_xoatk;
+	private MaHoa mh;
 
 	/**
 	 * Launch the application.
@@ -100,6 +100,7 @@ public class DangNhap extends JFrame {
 	 * Create the frame.
 	 */
 	public DangNhap() {
+		this.mh = new MaHoa();
 		ControllerDangNhap controllerDN = new ControllerDangNhap(this);
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		setBounds(100, 100, 336, 432);
@@ -619,9 +620,10 @@ public class DangNhap extends JFrame {
 	}
 	public void thucHienDangNhap() {
 		String taiKhoan = txtUsername_login.getText();
-		char[] matKhau = txtPassword_login.getPassword();
+		char[] matKhauC = txtPassword_login.getPassword();
+		String matKhau = mh.encoded(new String(matKhauC));
 
-		if (taiKhoan.isEmpty() || matKhau.length == 0) {
+		if (taiKhoan.isEmpty() || matKhauC.length == 0) {
 			JOptionPane.showMessageDialog(this, "Vui lòng nhập tên người dùng và mật khẩu", "Lỗi", JOptionPane.ERROR_MESSAGE);
 			return;
 		}
@@ -635,8 +637,8 @@ public class DangNhap extends JFrame {
 		txtPassword_login.setText("");
 	}
 
-	private void thucHienDangNhapAdmin(String taiKhoan, char[] matKhau) {
-		boolean kiemtraAdmin = AdminDAO.getInstance().kiemTraTaiKhoanMatKhauAdmin(taiKhoan, new String(matKhau));
+	private void thucHienDangNhapAdmin(String taiKhoan, String matKhau) {
+		boolean kiemtraAdmin = AdminDAO.getInstance().kiemTraTaiKhoanMatKhauAdmin(taiKhoan, matKhau);
 		if (kiemtraAdmin) {
 			JPasswordField matKhauTruyCap = new JPasswordField();
 			Object[] message = {"Nhập mật khẩu truy cập: ", matKhauTruyCap};
@@ -661,8 +663,8 @@ public class DangNhap extends JFrame {
 		}
 	}
 
-	private void thucHienDangNhapNguoiDung(String taiKhoan, char[] matKhau) {
-		boolean kiemtraNgDung = NguoiDungDAO.getInstance().kiemTraTaiKhoanMatKhauNguoiDung(taiKhoan, new String(matKhau));
+	private void thucHienDangNhapNguoiDung(String taiKhoan, String matKhau) {
+		boolean kiemtraNgDung = NguoiDungDAO.getInstance().kiemTraTaiKhoanMatKhauNguoiDung(taiKhoan, matKhau);
 		if (kiemtraNgDung) {
 			NguoiDung nguoiDung = null;
 			try {
@@ -680,22 +682,24 @@ public class DangNhap extends JFrame {
 	}
 	public void thucHienDoiMatKhau(){
 		String taiKhoan = txtUsername_doimk.getText();
-		char[] matKhau = txtPassword_doimk.getPassword();
-		char[] matKhauMoi = txtNewPassword_doimk.getPassword();
+		char[] matKhauC = txtPassword_doimk.getPassword();
+		String matKhau = mh.encoded(new String(matKhauC));
+		char[] matKhauMoiC = txtNewPassword_doimk.getPassword();
+		String matKhauMoi = mh.encoded(new String(matKhauMoiC));
 
-		if (taiKhoan.isEmpty() || matKhau.length == 0 || matKhauMoi.length == 0){
+		if (taiKhoan.isEmpty() || matKhauC.length == 0 || matKhauMoiC.length == 0){
 			JOptionPane.showMessageDialog(this, "Vui lòng nhập tên người dùng và mật khẩu", "Lỗi", JOptionPane.ERROR_MESSAGE);
 			return;
 		}
 
-		if (new String(matKhau).equalsIgnoreCase(new String(matKhauMoi))){
+		if (new String(matKhauC).equalsIgnoreCase(new String(matKhauMoiC))){
 			JOptionPane.showMessageDialog(this, "Mật khẩu mới và mật khẩu mới trùng nhau", "Lỗi", JOptionPane.ERROR_MESSAGE);
 			return;
 		}
 		if (cbAdmin_doimatkhau.isSelected()) {
-			thucHienDoiMatKhauAdmin(taiKhoan, new String(matKhau), new String(matKhauMoi));
+			thucHienDoiMatKhauAdmin(taiKhoan, matKhau, matKhauMoi);
 		} else {
-			thucHienDoiMatKhauNguoiDung(taiKhoan, new String(matKhau), new String(matKhauMoi));
+			thucHienDoiMatKhauNguoiDung(taiKhoan, matKhau, matKhauMoi);
 		}
 		txtNewPassword_doimk.setText("");
 		txtPassword_doimk.setText("");
@@ -714,8 +718,8 @@ public class DangNhap extends JFrame {
 					TKAdmin tkAdmin = new TKAdmin(taiKhoan, matKhauMoi);
 					AdminDAO.getInstance().doiMatKhau(tkAdmin);
 					cbAdmin_doimatkhau.setSelected(false);
-					thongbao = "Đổi mật khẩu thành công!\n" + "Mật khẩu mới của bạn là: "+matKhauMoi;
-					JOptionPane.showMessageDialog(this, "Đổi mật khẩu thành công!\n" + "Mật khẩu mới của bạn là: "+matKhauMoi);
+					thongbao = "Đổi mật khẩu thành công!\n" + "Mật khẩu mới của bạn là: "+ mh.decoded(matKhauMoi);
+					JOptionPane.showMessageDialog(this, thongbao);
 				}else {
 					JOptionPane.showConfirmDialog(this, "Mật khẩu truy cập không chính xác", "ERROR", JOptionPane.ERROR_MESSAGE);
 				}
@@ -729,8 +733,8 @@ public class DangNhap extends JFrame {
 		if (kiemTraNgDung){
 			TKNgDung tkNgDung = new TKNgDung(taiKhoan, matKhauMoi, null);
 			NguoiDungDAO.getInstance().doiMatKhau(tkNgDung);
-			thongbao = "Đổi mật khẩu thành công!\n" + "Mật khẩu mới của bạn là: "+matKhauMoi;
-			JOptionPane.showMessageDialog(this, "Đổi mật khẩu thành công!\n" + "Mật khẩu mới của bạn là: "+matKhauMoi);
+			thongbao = "Đổi mật khẩu thành công!\n" + "Mật khẩu mới của bạn là: "+ mh.decoded(matKhauMoi);
+			JOptionPane.showMessageDialog(this, thongbao);
 		}else {
 			JOptionPane.showMessageDialog(this, "Tài khoản/mật khẩu không chính xác!", "ERROR", JOptionPane.ERROR_MESSAGE);
 		}
@@ -738,7 +742,6 @@ public class DangNhap extends JFrame {
 	public void thucHienDangKyTaiKhoan(){
 		String taiKhoan = txtUsername_dangky.getText();
 		char[] matKhau = txtPassword_dangky.getPassword();
-		String encodepass = Base64.getEncoder().encodeToString(new String(matKhau).getBytes());
 		String tenht = textField_displayName.getText();
 
 		if (taiKhoan.isEmpty() || matKhau.length == 0){
@@ -749,8 +752,8 @@ public class DangNhap extends JFrame {
 			JOptionPane.showMessageDialog(this, "Tài khoản và mật khẩu trùng nhau", "ERROR", JOptionPane.ERROR_MESSAGE);
 		}else {
 			if (cbAdmin_dangky.isSelected()){
-				thucHienDangKyTaiKhoanAdmin(taiKhoan, new String(matKhau));
-			}else thucHienDangKyTaiKhoanNguoiDung(taiKhoan, new String(matKhau), tenht);
+				thucHienDangKyTaiKhoanAdmin(taiKhoan,mh.encoded(new String(matKhau)));
+			}else thucHienDangKyTaiKhoanNguoiDung(taiKhoan, mh.encoded(new String(matKhau)), tenht);
 		}
 		txtUsername_dangky.setText("");
 		txtPassword_dangky.setText("");
@@ -772,7 +775,7 @@ public class DangNhap extends JFrame {
 				TKAdmin tkAdmin = new TKAdmin(taiKhoan, matKhau);
 				AdminDAO.getInstance().dangKyTaiKhoan(tkAdmin);
 				cbAdmin_dangky.setSelected(false);
-				thongbao = "Đăng ký tài khoản: " + taiKhoan + ", mật khẩu: "+ matKhau + " thành công!";
+				thongbao = "Đăng ký tài khoản: " + taiKhoan + ", mật khẩu: "+ mh.decoded(matKhau) + " thành công!";
 				JOptionPane.showMessageDialog(this, thongbao, "Thông báo", JOptionPane.INFORMATION_MESSAGE);
 			}else {
 				JOptionPane.showConfirmDialog(this, "Mật khẩu truy cập không chính xác", "ERROR", JOptionPane.ERROR_MESSAGE);
@@ -787,7 +790,7 @@ public class DangNhap extends JFrame {
 		}
 		TKNgDung tkNgDung = new TKNgDung(taiKhoan, matKhau, tenHt);
 		NguoiDungDAO.getInstance().dangKyTaiKhoan(tkNgDung);
-		thongbao = "Đăng ký tài khoản: " + taiKhoan + ", mật khẩu: "+ matKhau + " thành công!";
+		thongbao = "Đăng ký tài khoản: " + taiKhoan + ", mật khẩu: "+ mh.decoded(matKhau) + " thành công!";
 		JOptionPane.showMessageDialog(this, thongbao, "Thông báo", JOptionPane.INFORMATION_MESSAGE);
 	}
 	public void thucHienLayLaiMatKhau(){
@@ -863,16 +866,17 @@ public class DangNhap extends JFrame {
 	}
 	public void thucHienXoaTaiKhoan(){
 		String taiKhoan = ttxUsername_xoatk.getText();
-		char[] matKhau = txtPassword_xoatk.getPassword();
+		char[] matKhauC = txtPassword_xoatk.getPassword();
+		String matKhau = mh.encoded(new String(matKhauC));
 
-		if (taiKhoan.isEmpty() || matKhau.length == 0){
+		if (taiKhoan.isEmpty() || matKhauC.length == 0){
 			JOptionPane.showMessageDialog(this, "Vui lòng nhập tài khoản!", "ERROR", JOptionPane.ERROR_MESSAGE);
 			return;
 		}
 		if (cbAdmin_xoatk.isSelected()){
-			thucHienXoaTaiKhoanAdmin(taiKhoan, new String(matKhau));
+			thucHienXoaTaiKhoanAdmin(taiKhoan, matKhau);
 		}else {
-			thucHienXoaTaiKhoanNguoiDung(taiKhoan, new String(matKhau));
+			thucHienXoaTaiKhoanNguoiDung(taiKhoan, matKhau);
 		}
 		txtPassword_xoatk.setText("");
 		ttxUsername_xoatk.setText("");

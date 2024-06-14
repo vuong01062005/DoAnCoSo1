@@ -5,7 +5,7 @@ import Model.TKAdmin;
 import Model.TKNgDung;
 import View.DangNhap;
 import View.NguoiDung;
-import chat2.MaHoa;
+import Socket.MaHoa;
 
 import javax.swing.*;
 import java.sql.Connection;

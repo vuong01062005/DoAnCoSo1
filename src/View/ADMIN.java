@@ -747,7 +747,7 @@ public class ADMIN extends JFrame {
             JOptionPane.showMessageDialog(this, "Nhập đầy đủ thông tin", "ERROR", JOptionPane.ERROR_MESSAGE);
             return;
         }
-        String machuyenbay = this.textField_lichmachuyenbay.getText();
+        String machuyenbay = this.textField_lichmachuyenbay.getText().toLowerCase();
         String ngaybay = this.textField_lichngaybay.getText();
         String gioBay = this.textField_lichgiobay.getText();
         String diemkhoihanh = this.comboBox_lichkhoihanh.getSelectedItem() + "";

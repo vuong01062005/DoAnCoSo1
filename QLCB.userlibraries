@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<eclipse-userlibraries>
+  <library name="activation-1.1">
+    <archive path="D:/Workspace/Intell/QLCB/src/Mail/activation-1.1.jar" />
+  </library>
+  <library name="javax.mail">
+    <archive path="D:/Workspace/Intell/QLCB/src/Mail/javax.mail.jar" />
+  </library>
+  <library name="jcommon-1.0.23">
+    <archive path="D:/Workspace/Intell/QLCB/src/Libraries/JFreeChart/jcommon-1.0.23.jar" />
+  </library>
+  <library name="jfreechart-1.0.19">
+    <archive path="D:/Workspace/Intell/QLCB/src/Libraries/JFreeChart/jfreechart-1.0.19.jar" />
+  </library>
+  <library name="mysql-connector-java-8.0.30">
+    <archive path="D:/Workspace/Intell/QLCB/src/Libraries/jdbc/mysql-connector-java-8.0.30.jar" />
+  </library>
+  <library name="protobuf-java-3.19.4">
+    <archive path="D:/Workspace/Intell/QLCB/src/Libraries/jdbc/protobuf-java-3.19.4.jar" />
+  </library>
+</eclipse-userlibraries>
+
